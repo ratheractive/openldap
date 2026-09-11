@@ -11,6 +11,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      openldap: ${{ steps.ver.outputs.openldap }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -37,3 +39,14 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.description=OpenLDAP ${{ steps.ver.outputs.openldap }} on Alpine, env-configured, LDIF bootstrap
             org.opencontainers.image.licenses=MIT
+  chart:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: helm lint charts/openldap
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: |
+          helm package charts/openldap --app-version "${{ needs.build.outputs.openldap }}" -d /tmp/chart
+          helm push /tmp/chart/openldap-*.tgz oci://ghcr.io/${{ github.repository_owner }}/charts

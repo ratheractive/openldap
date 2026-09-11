@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openldap.fullname" . }}
+  labels: {{- include "openldap.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {{- include "openldap.selector" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "openldap.selector" . | nindent 8 }}
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: openldap
+        image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - {name: LDAP_SUFFIX, value: {{ .Values.ldap.suffix | quote }}}
+        {{- with .Values.ldap.rootDn }}
+        - {name: LDAP_ROOT_DN, value: {{ . | quote }}}
+        {{- end }}
+        {{- with .Values.ldap.organisation }}
+        - {name: LDAP_ORGANISATION, value: {{ . | quote }}}
+        {{- end }}
+        {{- with .Values.ldap.ppolicyDefault }}
+        - {name: LDAP_PPOLICY_DEFAULT, value: {{ . | quote }}}
+        {{- end }}
+        {{- with .Values.ldap.passwordManagerDn }}
+        - {name: LDAP_PASSWORD_MANAGER_DN, value: {{ . | quote }}}
+        {{- end }}
+        - {name: LDAP_LOG_LEVEL, value: {{ .Values.ldap.logLevel | quote }}}
+        {{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        envFrom:
+        - secretRef: {name: {{ include "openldap.secretName" . }}}
+        ports:
+        - {name: ldap, containerPort: 389}
+        volumeMounts:
+        {{- if .Values.persistence.enabled }}
+        - {name: data, mountPath: /data}
+        {{- end }}
+        {{- if .Values.bootstrap.existingSecret }}
+        - {name: bootstrap, mountPath: /bootstrap, readOnly: true}
+        {{- end }}
+        readinessProbe:
+          exec: {command: [ldapsearch, -x, -H, "ldap://127.0.0.1", -b, "", -s, base, "1.1"]}
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          exec: {command: [ldapsearch, -x, -H, "ldap://127.0.0.1", -b, "", -s, base, "1.1"]}
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 5
+        resources: {{- toYaml .Values.resources | nindent 10 }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+      - name: data
+        persistentVolumeClaim: {claimName: {{ include "openldap.claimName" . }}}
+      {{- end }}
+      {{- if .Values.bootstrap.existingSecret }}
+      - name: bootstrap
+        secret: {secretName: {{ .Values.bootstrap.existingSecret }}}
+      {{- end }}

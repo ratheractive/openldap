@@ -1,0 +1,3 @@
+OpenLDAP is starting. Service: {{ include "openldap.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port }}
+Suffix {{ .Values.ldap.suffix }}, root DN {{ default (printf "cn=admin,%s" .Values.ldap.suffix) .Values.ldap.rootDn }}.
+First start with an empty volume bootstraps from the Secret in bootstrap.existingSecret (if set).

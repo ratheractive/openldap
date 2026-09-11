@@ -1,0 +1,35 @@
+image:
+  repository: ghcr.io/ratheractive/openldap
+  tag: ""                 # defaults to the chart's appVersion
+  pullPolicy: IfNotPresent
+
+ldap:
+  suffix: dc=example,dc=org
+  rootDn: ""              # default cn=admin,<suffix>
+  organisation: ""        # only used when no bootstrap LDIF
+  ppolicyDefault: ""      # DN of a pwdPolicy entry, e.g. cn=ppolicy,dc=example,dc=org
+  passwordManagerDn: ""   # DN allowed to write everyone's userPassword (self-service tool)
+  logLevel: stats
+  rootPassword: ""        # ignored when existingSecret is set
+  existingSecret: ""      # Secret with key LDAP_ROOT_PASSWORD (recommended)
+
+bootstrap:
+  existingSecret: ""      # Secret whose keys are *.ldif; loaded on first start only
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  storageClass: ""
+  size: 1Gi
+
+service:
+  type: ClusterIP
+  port: 389
+
+resources:
+  requests: {cpu: 10m, memory: 32Mi}
+  limits: {cpu: 500m, memory: 256Mi}
+
+extraEnv: []
+nodeSelector: {}
+tolerations: []

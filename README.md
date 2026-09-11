@@ -42,6 +42,15 @@ in name order - a full `slapcat`/`ldapsearch` export of another directory works
 as-is, password hashes included. Without them the base entry is created empty.
 Nothing in `/bootstrap` is read again once `/data/config` exists.
 
+## Helm chart
+
+```
+helm install ldap oci://ghcr.io/ratheractive/charts/openldap -n ldap --create-namespace \
+  --set ldap.suffix=dc=example,dc=org --set ldap.rootPassword=secret
+```
+`charts/openldap/values.yaml` lists everything: existing Secret for the root password,
+existing PVC, bootstrap Secret of `*.ldif`, ppolicy and password-manager DNs.
+
 ## Managing
 
 There is deliberately no admin UI in the image. `ldapadd`/`ldapmodify` with the

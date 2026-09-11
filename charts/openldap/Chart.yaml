@@ -1,0 +1,9 @@
+apiVersion: v2
+name: openldap
+description: OpenLDAP 2.6 on Alpine - small, env-configured, LDIF bootstrap. Image ghcr.io/ratheractive/openldap.
+type: application
+version: 0.1.0
+appVersion: "2.6.8"
+home: https://github.com/ratheractive/openldap
+sources: [https://github.com/ratheractive/openldap]
+keywords: [ldap, openldap, identity]
