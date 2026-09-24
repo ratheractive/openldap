@@ -33,3 +33,8 @@ resources:
 extraEnv: []
 nodeSelector: {}
 tolerations: []
+
+# Pod priority. Empty leaves the cluster default. A directory that every login depends on
+# is usually worth running in a class that outlives ordinary workloads when a node runs
+# short of memory.
+priorityClassName: ""

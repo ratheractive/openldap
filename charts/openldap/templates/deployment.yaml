@@ -12,6 +12,9 @@ spec:
     metadata:
       labels: {{- include "openldap.selector" . | nindent 8 }}
     spec:
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector: {{- toYaml . | nindent 8 }}
       {{- end }}
